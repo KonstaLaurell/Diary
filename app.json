@@ -1,17 +1,13 @@
 {
   "expo": {
     "name": "Diary",
-    "slug": "Trip-Journal",
-    "version": "1.0",
+    "slug": "diar",
+    "version": "1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -20,15 +16,25 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tyhjyys.Diary"
+      "package": "com.tyhjyys.diar"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
@@ -38,7 +44,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "2e411518-85d0-4857-885a-f466080ee1a9"
+        "projectId": "d0eb4eb6-7f76-4843-bca2-1f1efa7a8b5e"
       }
     }
   }

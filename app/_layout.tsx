@@ -9,9 +9,9 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
-import { ThemeProvider } from "@/context/ThemeContext"; // We'll create this
+import { ThemeProvider } from "@/context/ThemeContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
-
+import AuthGate from "@/components/AuthGate";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 import { useTheme } from "@/context/ThemeContext";
@@ -41,10 +41,15 @@ const InnerLayout = () => {
 	const { isDark } = useTheme();
 	return (
 		<NavigationThemeProvider value={isDark ? darkTheme : lightTheme}>
-			<Stack>
-				<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-				<Stack.Screen name="+not-found" />
-			</Stack>
+			<AuthGate>
+				<Stack>
+					<Stack.Screen
+						name="(tabs)"
+						options={{ headerShown: false }}
+					/>
+					<Stack.Screen name="+not-found" />
+				</Stack>
+			</AuthGate>
 		</NavigationThemeProvider>
 	);
 };

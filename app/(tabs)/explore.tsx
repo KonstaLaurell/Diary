@@ -3,27 +3,21 @@ import { View, Text, FlatList, Image, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTheme } from "@/context/ThemeContext";
 import { lightTheme, darkTheme } from "@/context/themes";
-
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 export default function ExploreScreen() {
 	const { isDark } = useTheme();
 	const theme = isDark ? darkTheme : lightTheme;
 	const [entries, setEntries] = useState<any[]>([]);
 
-	useEffect(() => {
-		const focusListener = () => {
-			loadEntries();
-		};
 
-		// Load diary entries initially when the component mounts
-		loadEntries();
 
-		// Add listener to reload entries whenever the screen is focused
-		const unsubscribe = focusListener;
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries(); // Called every time screen is focused
+    }, [])
+  );
 
-		return () => {
-			unsubscribe();
-		};
-	}, []);
 
 	const loadEntries = async () => {
 		const saved = await AsyncStorage.getItem("diaryEntries");
@@ -31,9 +25,8 @@ export default function ExploreScreen() {
 			const parsed = JSON.parse(saved);
 			// Sorting entries by timestamp in descending order (newest first)
 			const sortedEntries = parsed.sort(
-				(a: { timestamp: string }, b: { timestamp: string }) =>
-					new Date(b.timestamp).getTime() -
-					new Date(a.timestamp).getTime()
+				(a: { date: string }, b: { date: string }) =>
+					new Date(b.date).getTime() - new Date(a.date).getTime()
 			);
 			setEntries(sortedEntries);
 		}
@@ -70,7 +63,7 @@ export default function ExploreScreen() {
 								styles.entryTimestamp,
 								{ color: theme.colors.border },
 							]}>
-							{item.timestamp}
+							{item.date}
 						</Text>
 						{item.image && (
 							<Image

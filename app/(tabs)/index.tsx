@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { useTheme } from "@/context/ThemeContext";
 
 export default function HomeScreen() {
@@ -27,6 +28,9 @@ export default function HomeScreen() {
 	const [image, setImage] = useState<string | null>(null);
 	const [entries, setEntries] = useState([]);
 	const [modalSlide] = useState(new Animated.Value(0));
+	const [name, setname] = useState("");
+	const [selectedDate, setSelectedDate] = useState(new Date());
+	const [showDatePicker, setShowDatePicker] = useState(false);
 
 	useEffect(() => {
 		loadAndPickRandomEntries();
@@ -38,13 +42,14 @@ export default function HomeScreen() {
 	};
 
 	const handleSave = async () => {
+		
 		const newEntry = {
 			id: Date.now().toString(),
 			title,
 			text,
 			timestamp: getTimestamp(),
-			image,
-			date: new Date().toISOString().split("T")[0],
+			image: image || null,
+			date: selectedDate.toISOString().split("T")[0],
 		};
 
 		const saved = await AsyncStorage.getItem("diaryEntries");
@@ -60,9 +65,13 @@ export default function HomeScreen() {
 		setTitle("");
 		setText("");
 		setImage(null);
+		setSelectedDate(new Date());
 	};
 
 	const loadAndPickRandomEntries = async () => {
+
+		const name = await AsyncStorage.getItem("user_name");
+		setname(name || "");
 		const saved = await AsyncStorage.getItem("diaryEntries");
 		if (saved) {
 			const parsed = JSON.parse(saved);
@@ -89,7 +98,6 @@ export default function HomeScreen() {
 		}
 	};
 
-	// Slide in animation for modal
 	const animateModal = () => {
 		Animated.timing(modalSlide, {
 			toValue: 1,
@@ -98,7 +106,6 @@ export default function HomeScreen() {
 		}).start();
 	};
 
-	// Reset animation when closing
 	const resetModal = () => {
 		Animated.timing(modalSlide, {
 			toValue: 0,
@@ -107,9 +114,7 @@ export default function HomeScreen() {
 		}).start();
 	};
 
-	// Get screen height and width
 	const screenHeight = Dimensions.get("window").height;
-	const screenWidth = Dimensions.get("window").width;
 
 	const styles = StyleSheet.create({
 		container: {
@@ -125,18 +130,18 @@ export default function HomeScreen() {
 			fontWeight: "bold",
 			color: theme.colors.text,
 		},
-        modalOverlay: {
-            width: "100%",
+		modalOverlay: {
+			width: "100%",
 			flex: 1,
 			backgroundColor: theme.colors.overlay,
 			justifyContent: "center",
 			alignItems: "center",
 		},
-        modalContent: {
-            height:"100%",
-            backgroundColor: theme.colors.card,
+		modalContent: {
+			height: "100%",
+			backgroundColor: theme.colors.card,
 			padding: 20,
-			width: "100%", // Full width
+			width: "100%",
 			borderRadius: 10,
 			gap: 10,
 			shadowColor: "#000",
@@ -145,7 +150,7 @@ export default function HomeScreen() {
 			shadowRadius: 20,
 			elevation: 5,
 		},
-        input: {
+		input: {
 			borderColor: theme.colors.inputBorder,
 			backgroundColor: theme.colors.inputBackground,
 			borderWidth: 1,
@@ -210,7 +215,9 @@ export default function HomeScreen() {
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.header}>WELCOME TO YOUR DIARY</Text>
+			<Text style={styles.header}>
+				Hello {name} and welcome to your personal diary
+			</Text>
 			<Button
 				title="New Diary"
 				onPress={() => {
@@ -226,23 +233,22 @@ export default function HomeScreen() {
 				renderItem={({ item }) => (
 					<View style={styles.entry}>
 						<Text style={styles.entryTitle}>{item.title}</Text>
-						<Text style={styles.entryTimestamp}>
-							{item.timestamp}
-						</Text>
-						{item.image && (
+						<Text style={styles.entryTimestamp}>{item.date}</Text>
+						{item.image?.startsWith("file://") ||
+						item.image?.startsWith("http") ? (
 							<Image
 								source={{ uri: item.image }}
 								style={styles.entryImage}
 								resizeMode="contain"
 							/>
-						)}
+						) : null}
+
 						<Text style={styles.entryText}>{item.text}</Text>
 					</View>
 				)}
 			/>
 
 			<Modal
-				style={{display:"flex"}}
 				transparent
 				visible={modalVisible}
 				onRequestClose={() => {
@@ -250,12 +256,11 @@ export default function HomeScreen() {
 					setModalVisible(false);
 				}}>
 				<Animated.View
-                    style={{
-                        height:"100%",
-                        display:"flex",
+					style={{
+						height: "100%",
 						width: "100%",
 						backgroundColor: theme.colors.overlay,
-                        justifyContent: "center",
+						justifyContent: "center",
 					}}>
 					<ScrollView contentContainerStyle={styles.modalContent}>
 						<TextInput
@@ -274,13 +279,33 @@ export default function HomeScreen() {
 							numberOfLines={6}
 							style={[styles.input, styles.textArea]}
 						/>
-						{image && (
-							<Image
-								source={{ uri: image }}
-								style={styles.previewImage}
-								resizeMode="contain"
+						<TouchableOpacity
+							onPress={() => setShowDatePicker(true)}
+							style={styles.imageButton}>
+							<Text style={styles.imageButtonText}>
+								{`Choose Date (${selectedDate.toDateString()})`}
+							</Text>
+						</TouchableOpacity>
+						{showDatePicker && (
+							<DateTimePicker
+								value={selectedDate}
+								mode="date"
+								display="default"
+								onChange={(event, date) => {
+									setShowDatePicker(false);
+									if (date) setSelectedDate(date);
+								}}
 							/>
 						)}
+						{typeof image === "string" &&
+							image?.startsWith("file://") && (
+								<Image
+									source={{ uri: image }}
+									style={styles.entryImage}
+									resizeMode="contain"
+								/>
+							)}
+
 						<TouchableOpacity
 							onPress={pickImage}
 							style={styles.imageButton}>

@@ -11,6 +11,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Calendar } from "react-native-calendars";
 import { useTheme } from "@/context/ThemeContext";
 import { lightTheme, darkTheme } from "@/context/themes";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+
 
 export default function CalendarScreen() {
 	const { isDark } = useTheme();
@@ -20,9 +23,12 @@ export default function CalendarScreen() {
 	const [entriesByDate, setEntriesByDate] = useState({});
 	const [markedDates, setMarkedDates] = useState({});
 
-	useEffect(() => {
-		loadEntries();
-	}, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries(); // Called every time screen is focused
+    }, [])
+  );
 
 	const loadEntries = async () => {
 		const saved = await AsyncStorage.getItem("diaryEntries");
